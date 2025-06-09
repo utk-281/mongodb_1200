@@ -54,3 +54,5 @@ let object4 = {
 };
 
 //! json ==> it is language independent
+
+//& notes in ==> https://excalidraw.com/#json=k_KB_ko5Wakyvd1FF7CoL,J-c4Fl7Dkh0bWIwpQHXGAg
