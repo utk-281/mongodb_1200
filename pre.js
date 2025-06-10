@@ -55,4 +55,8 @@ let object4 = {
 
 //! json ==> it is language independent
 
-//& notes in ==> https://excalidraw.com/#json=k_KB_ko5Wakyvd1FF7CoL,J-c4Fl7Dkh0bWIwpQHXGAg
+
+//! compass ==> https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-8.0.10-signed.msi
+//! shell ==> https://downloads.mongodb.com/compass/mongosh-2.5.2-x64.msi
+
+//! exe ==> https://downloads.mongodb.com/compass/mongodb-compass-1.46.3-win32-x64.exe
