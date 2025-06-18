@@ -55,8 +55,7 @@ let object4 = {
 
 //! json ==> it is language independent
 
-
 //! compass ==> https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-8.0.10-signed.msi
-//! shell ==> https://downloads.mongodb.com/compass/mongosh-2.5.2-x64.msi
+//! mongoshell ==> https://downloads.mongodb.com/compass/mongosh-2.5.2-x64.msi
 
 //! exe ==> https://downloads.mongodb.com/compass/mongodb-compass-1.46.3-win32-x64.exe
