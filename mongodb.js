@@ -73,7 +73,7 @@ Questions
 14) Can you provide details of employees earning more than 2000?
 15) Could you provide details of the employee whose name is Jones?
 16) Can you give details of employees who were hired after January 1, 1981?
-17) Provide names and salaries, including annual salaries, of employees whose annual salary exceeds 12000.
+17) Provide names and salaries, including annual salaries, of employees whose   annual salary exceeds 12000.
 18) What are the details of the  employee working in department 30?
 19) Can you list the names and hire dates of employees hired before 1981?
 20) Provide details of employees working as managers.
@@ -87,3 +87,75 @@ Questions
 //! display the emp details whose unique id is "66a23517b5c6990483c4e4a8".
 db.emp.findOne({ _id: ObjectId("66a23517b5c6990483c4e4a8") });
 //& for fetching data based on _id, we have to mention the data type i.e. ObjectId("123")
+
+//! find the details of user who are working as sales man in dept 10 or 20
+db.emp.find({ $and: [{ job: "salesman" }, { $or: [{ deptNo: 10 }, { deptNo: 30 }] }] });
+db.emp.find({ $and: [{ job: "salesman" }, { deptNo: { $in: [10, 20] } }] });
+
+//~ fetching based on array values
+//! find the students details who are having physics as a subject
+db.students.find({ subjects: "physics" });
+
+//! find the students details who are having physics and chemistry as a subject
+db.students.find({ $and: [{ subjects: "physics" }, { subjects: "chemistry" }] });
+
+//! find the students details who are having physics , maths, and chemistry as a subject
+db.students.find({
+  $and: [{ subjects: "physics" }, { subjects: "chemistry" }, { subjects: "maths" }],
+});
+
+//! find the students details who are having physics and chemistry as a subject
+db.students.find({ subjects: ["chemistry", "physics"] }); // this will not work
+
+//! find the students details who are having physics and chemistry as a subject
+db.students.find({ subjects: { $all: ["chemistry", "physics"] } });
+
+//! ======================= array operators => $all, $size ===================
+//& $all ==> it is used on array, fetches all the documents which fulfills all the given values
+//? syntax ==> { key_name: { $all: [v1, v2, v2, .....] } }
+
+//& $size ==> it targets the docs, based on the size of the array
+//? syntax ==> { key_name: { $size: number} }
+
+//! find the students details who are having only 2 subjects
+db.students.find({ subjects: { $size: 2 } });
+
+db.students.insertOne({
+  "user name": "san",
+  "user-age": 24,
+  user_gender: "M",
+  "user subjects": ["maths"],
+  1: "helloo",
+});
+// user name
+// user-age
+// gender
+// user subjects
+
+db.students.find({ "user name": "san" });
+db.students.find({ 1: "helloo" });
+
+let ob = {
+  "user name": "san",
+  "user-age": 24,
+  user_gender: "M",
+  "user subjects": ["maths"],
+  1: "helloo",
+  address: {
+    key1: "",
+  },
+};
+
+console.log(ob[1]);
+console.log(ob["user name"]);
+
+db.students.insertOne({
+  name: "rahul",
+  age: 23,
+  gender: "M",
+  address: {
+    city: "Banglore",
+  },
+});
+
+db.students.findOne({ "address.city": "Banglore" });
