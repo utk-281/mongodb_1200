@@ -159,3 +159,56 @@ db.students.insertOne({
 });
 
 db.students.findOne({ "address.city": "Banglore" });
+
+//! query op ==>
+//! comparison($eq, $ne, $gt, $gte, $lt, $lte, $nin, $in),
+//! logical($and, $or, $nor, $not),
+//! array ($all, $size)
+//! misc. ($regex, $expr)
+
+//? $regex ==> it stands for regular expression. it is used for pattern matching. only applicable on strings
+//& syntax ==> { key_name: { $regex: /pattern/ } }
+
+// display all the employees names who have letter "a" in their name
+db.emp.find({ empName: { $regex: /a/ } }, { empName: 1, _id: 0 });
+
+// display all the employees names whose first letter of the name is "a"
+db.emp.find({ empName: { $regex: /^a/ } }, { empName: 1, _id: 0 });
+//& cap symbol ==> ^ (shift + 6)
+
+// display all the employees names whose first two letters are "ad"
+db.emp.find({ empName: { $regex: /^ad/ } }, { empName: 1, _id: 0 });
+
+// display all the employees names whose last letter of the name is "s"
+db.emp.find({ empName: { $regex: /s$/ } }, { empName: 1, _id: 0 });
+//& dollar symbol ==> $ (shift + 4)
+
+// display all the employees names whose last two letters are "es"
+db.emp.find({ empName: { $regex: /es$/ } }, { empName: 1, _id: 0 });
+
+//& if you want to skip characters use dot symbol( "." )
+// display the name of all the emp who have letter "a" as the second character from start
+db.emp.find({ empName: { $regex: /^.a/ } }, { empName: 1, _id: 0 });
+
+// display the name of all the emp who have letter "s" as the third last character
+db.emp.find({ empName: { $regex: /s..$/ } }, { empName: 1, _id: 0 });
+
+// display the name of all the emp who have are having exactly 4 characters
+db.emp.find({ empName: { $regex: /^....$/ } }, { empName: 1, _id: 0 });
+
+// display the name of all the emp who have are having first letter as "a" and last letter "n"
+db.emp.find({ empName: { $regex: /^a.*n$/ } }, { empName: 1, _id: 0 });
+
+db.emp.find({ sal: { $regex: /^20..$/ } }, { sal: 1, _id: 0 });
+
+//? comm> sal
+//! $expr ==> syntax ==> {$expr: {expression}}
+db.emp.find({ $expr: { $gt: ["$comm", "$sal"] } });
+
+// Can you give details of employees who were hired after January 1, 1981?
+// { key_name: ISODate/new Date("YY-MM-DDTHH:MM:SSZ") }
+db.emp.find({ hireDate: { $gt: ISODate("1981-01-01T00:00:00Z") } });
+
+db.emp.find({ hireDate: { $gt: new Date("1 jan 1980") } }); // UTC FORMATS (NOT LOCAL FORMATS)
+
+//? https://github.com/utk-281/mongodb_1200
