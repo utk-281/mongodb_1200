@@ -212,3 +212,105 @@ db.emp.find({ hireDate: { $gt: ISODate("1981-01-01T00:00:00Z") } });
 db.emp.find({ hireDate: { $gt: new Date("1 jan 1980") } }); // UTC FORMATS (NOT LOCAL FORMATS)
 
 //? https://github.com/utk-281/mongodb_1200
+
+//~ update operators --> $set, $unset, $inc, $max, $min, $rename
+// one/many( { filter }, { updation value }, { options } )
+// updating docs ==>
+//? we can add a new key value pair ==> ($set)
+//? we can update the existing value ==> ($set)
+//? we can update existing key ==> ($rename)
+//? we can remove the key value pair ==> ($unset)
+
+//! $set ==> using $set we can add a new key value pair or update the existing value
+// One/Many--> ({filter}, { $set: { key_name: value } })
+db.cars.insertMany([
+  { name: "Honda", model: "Civic", price: 30000 },
+  { name: "Honda", model: "Accord", price: 40000 },
+  { name: "Honda", model: "CRV", price: 50000 },
+]);
+
+//! update the honda civic model and add a spoiler (spoiler:true)
+db.cars.updateOne({ model: "Civic" }, { $set: { Spoiler: true } });
+/*
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+*/
+
+//! update the price of honda civic model to 50000
+db.cars.updateOne({ model: "Civic" }, { $set: { price: 50000 } });
+
+//! $rename ==> it is used to rename a key
+// One/Many--> ({filter}, { $rename: { "old_key": "new_key"} })
+
+//! update the key "Spoiler" to "spoilers" of honda civic
+db.cars.updateOne(
+  { model: "Civic" }, // filter part
+  {
+    $rename: {
+      // updation part
+      Spoiler: "spoilers",
+    },
+  }
+);
+
+/*
+db.cars.updateOne(
+  { model: "Civic" }, // filter part
+  {
+    $rename: {
+      // updation part
+      spoilers: "spoilers",
+    },
+  }
+);
+! this will throw an error ==> as we have to provide different new key
+*/
+
+//!
+// db.cars.updateOne({ model: "Civic" }, { $set: { spoilers: "" } });
+// db.cars.updateOne({ newModel: "Civic" }, { $set: { spoilers: undefined } });
+// db.cars.updateOne({ newModel: "Civic" }, { $set: { spoilers: null } });
+
+//! truthy and falsy
+//! $unset ==> ({filter}, { $unset: { key_name: ""} })
+// it is used to remove the key value pair
+db.cars.updateOne({ newModel: "Civic" }, { $unset: { price: "" } });
+
+//!
+db.cars.insertOne({
+  _id: 123456,
+  name: "Honda",
+  model: "Civic",
+});
+
+// update _id to 123
+db.cars.updateOne({ model: "Civic" }, { $set: { _id: 123 } });
+//?  Performing an update on the path '_id' would modify the immutable field '_id'
+
+//! $inc ==> it is used to increment/decrement
+// { $inc: { key_name: +/- number } }
+
+//! update the price of CRV by 10,000
+db.cars.updateOne({ model: "CRV" }, { $inc: { price: -10000 } });
+
+db.cars.updateOne({ model: "CRV" }, { $inc: { carsSold: 5 } });
+//? in case the key is not present, it will create a new key value pair
+//? null as a value cannot be passed with $inc
+
+// $max and $min
+//? $max ==> it is used to set the maximum value of a key
+//? $min ==> it is used to set the minimum value of a key
+
+// syntax ==> ({ $max/$min :{key_name: value}})
+db.scores.insertMany([
+  { name: "a", high: 200, low: 40 },
+  { name: "b", high: 2000, low: 140 },
+]);
+
+db.scores.updateOne({ name: "a" }, { $max: { high: 100000 } });
+db.scores.updateOne({ name: "a" }, { $min: { low: 150 } });
