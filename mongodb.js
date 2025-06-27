@@ -314,3 +314,116 @@ db.scores.insertMany([
 
 db.scores.updateOne({ name: "a" }, { $max: { high: 100000 } });
 db.scores.updateOne({ name: "a" }, { $min: { low: 150 } });
+
+//! data modelling ==> it is a process of defining of how data is stored and what is the relationship between the data
+
+// relation between the data can be defined in two ways
+//? 1) embedded relation/ nested relation
+//? 2) reference relation
+
+// example for embedded ==
+/*
+  emp = {
+      name:""
+      age:
+      address:{
+            city:""
+            state:""
+          },
+      contact:{
+            email:""
+            phone:""
+          }
+    }
+*/
+
+//! embedded
+db.users.insertMany([
+  {
+    name: "varun",
+    age: "24",
+    skills: ["html", "css", "js"],
+    address: { city: "delhi", state: "Ut" },
+    contact: {
+      email: "v@gmail.com",
+      phone: 12345678,
+    },
+  },
+  {
+    name: "chetna",
+    age: "24",
+    skills: ["html", "css", "js"],
+    address: { city: "gurgaon", state: "Haryana" },
+    contact: {
+      email: "c@gmail.com",
+      phone: 12345678,
+    },
+  },
+]);
+
+//! reference
+db.users.insertMany([
+  {
+    name: "rahul",
+    age: 34,
+    skills: ["java"],
+  },
+  {
+    name: "sirisha",
+    age: 34,
+    skills: ["python"],
+  },
+]);
+
+db.address.insertMany([
+  {
+    city: "delhi",
+    state: "Ut",
+  },
+  {
+    city: "gurgaon",
+    state: "Haryana",
+  },
+]);
+
+db.contact.insertMany([
+  {
+    email: "v@gmail.com",
+    phone: 12345678,
+  },
+  {
+    email: "c@gmail.com",
+    phone: 12345678,
+  },
+]);
+
+db.users.updateOne(
+  { name: "rahul" }, // filter
+  { $set: { address: ObjectId("685e448f65e243272650eb6d") } } // updation
+);
+
+db.users.updateOne(
+  {
+    name: "rahul",
+  },
+  {
+    $set: { contact: ObjectId("685e44ac65e243272650eb6f") },
+  }
+);
+
+// // aggregation
+// db.users.aggregate([
+//   {
+//     $match: {
+//       name: "rahul",
+//     },
+//   },
+//   {
+//     $lookup: {
+//       from: "address",
+//       foreignField: "_id",
+//       localField: "address",
+//       as: "address",
+//     },
+//   },
+// ]);
