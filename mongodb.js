@@ -427,3 +427,257 @@ db.users.updateOne(
 //     },
 //   },
 // ]);
+
+/*
+
+{
+  name:string,
+  age:number,
+}
+
+*/
+
+//! how data is stored ==> creating a structure
+db.createCollection("users", {
+  validator: {
+    // will validate the data before saving
+    $jsonSchema: {
+      // $jsonSchema will provide a structure to compare against input data
+      bsonType: "object", // this will be always object, mongodb stores js like objects
+      required: ["name", "age"], // in this we have to define all the required inputs
+      properties: {
+        // with the help of properties, we define datatypes of the inputs
+        name: {
+          bsonType: "string",
+        },
+        age: {
+          bsonType: "number",
+        },
+      },
+    },
+  },
+});
+
+db.users.insertMany([{ name: "abc" }, { age: 34 }]);
+
+db.users.insertOne({
+  name: "abc",
+  age: null,
+});
+
+db.createCollection("c2", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["email", "contact", "isMarried"],
+      properties: {
+        email: {
+          bsonType: "string",
+          description: "email must be a string",
+        },
+        contact: {
+          bsonType: "number",
+          description: "provide a number",
+        },
+        isMarried: {
+          bsonType: "bool",
+          description: "only true/false should be passed",
+        },
+      },
+    },
+  },
+});
+
+db.c2.insertOne({ email: "abc", contact: 123456, isMarried: false });
+
+db.createCollection("c4", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["name", "age", "address"],
+      properties: {
+        name: { bsonType: "string" },
+        age: { bsonType: "number" },
+        address: { bsonType: "object" },
+      },
+    },
+  },
+});
+
+db.c4.insertOne({
+  name: "abc",
+  age: 12,
+  address: {},
+  contact: 123456,
+});
+
+db.createCollection("c5", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["name", "age", "skills"],
+      properties: {
+        name: { bsonType: "string" },
+        age: { bsonType: "string" },
+        skills: {
+          bsonType: "array",
+          items: {
+            bsonType: "string",
+          },
+        },
+      },
+    },
+  },
+});
+
+db.c5.insertOne({
+  name: "anc",
+  age: "2344",
+  skills: [123],
+});
+
+db.createCollection("c6", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["name", "skills"],
+      properties: {
+        name: { bsonType: "string" },
+        skills: {
+          bsonType: "object",
+          required: ["fe", "be", "db"],
+          properties: {
+            fe: {
+              bsonType: "array",
+              items: { bsonType: "string" },
+            },
+            be: {
+              bsonType: "array",
+              items: { bsonType: "string" },
+            },
+            db: {
+              bsonType: "array",
+              items: { bsonType: "string" },
+            },
+          },
+        },
+      },
+    },
+  },
+});
+
+//! aggregation ==> it is a process of returning the documents based on some calculations and conditions, using aggregation we can find average, max, count, add new fields, etc...
+
+// syntax for aggregate ==>
+// db.collectionName.aggregate([{stage1}, {stage2}, {}, {}, {}, ......])
+// {} ==> stages
+
+//~ aggregate() accepts array of stages
+//~ in every stages, we will use one aggregation operator ($addFields, $match, $group.....)
+//~ using aggregation we can filter documents, we can group similar documents, we can add new fields, we can find max, min, sum ,etc...
+//~ output of each stage is given as input to next stage
+
+//& diff aggregation operators
+//1) $addFields ==> to create a new key-value pair at the time of display
+//2) $match ==> it is used to filter the documents based on certain conditions/
+//3) $group ==> it is used to group the documents based on certain value
+//4) $lookup ==> it is used to join 2 or more collections
+//5) $sort ==> it is used to sort the data in asc/desc order
+//6) $project ==> it is used to hide/display the data
+//7) $unwind ==> it is used to remove array from the field
+//8) $skip ==> it is used to skip the documents based on certain value
+//9) $limit ==> it is used to limit the documents based on certain value
+
+//? Provide names and salaries, including annual salaries, of employees whose   annual salary exceeds 12000.
+//? give me the count of employees who are working in sales department
+//? fetch the details of highest paid employee
+
+//& find the details of all the employees.
+db.emp.find();
+db.emp.aggregate();
+
+//? find me the count of employees in each department in which count is greater than 2 and whose name starts with "a"
+
+//! syntax for $match
+/* db.collectionName.aggregate([
+  {
+    $match: {condition},
+  },
+]);
+ */
+
+//! syntax for $group --> here we can perform few more operations like : max, min, avg, total, count
+db.collectionName.aggregate([
+  {
+    $group: {
+      _id: "$value", // whenever we are passing key as value we need to prefix $
+      count: { $sum: 1 },
+      maxValue: { $max: "$value" },
+      minValue: { $min: "$value" },
+      avgValue: { $avg: "$value" },
+      totalValue: { $sum: "$value" },
+    },
+  },
+]);
+
+//! syntax for $project ==>
+db.collectionName.aggregate([
+  {
+    $project: {
+      keyName: 1, // display,
+      keyName: 0, // hide
+    },
+  },
+]);
+
+//& 1) fetch the details of emp who are working in dept 20 and employee name should have letter "a"
+db.emp.find({ deptNo: 20, empName: { $regex: /a/ } });
+db.emp.aggregate([
+  {
+    $match: {
+      $and: [{ deptNo: 20 }, { empName: { $regex: /a/ } }],
+    },
+  },
+]);
+
+//& group the emp based on department number and find total count and max sal give to the dept
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$deptNo",
+      noOfEmp: { $sum: 1 },
+      maxSalary: { $max: "$sal" },
+      minSalary: { $min: "$sal" },
+      averageSalary: { $avg: "$sal" },
+      totalSalary: { $sum: "$sal" },
+    },
+  },
+]);
+
+//& 3) fetch emp name as "username" and deptNo of emp who are working in dept 20 and employee name should have letter "a"
+db.emp.aggregate([
+  {
+    $match: {
+      deptNo: 20,
+      empName: { $regex: /a/ },
+    },
+  }, // stage1
+  {
+    $project: {
+      username: "$empName", // aliasing
+      deptNo: 1,
+      _id: 0,
+    },
+  }, // stage2
+]);
+
+db.emp.aggregate([
+  {
+    $project: {
+      hireDate: 1,
+      _id: 0,
+    },
+  },
+]);
+
+//& 4)
