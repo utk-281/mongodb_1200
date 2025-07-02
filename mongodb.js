@@ -579,7 +579,7 @@ db.createCollection("c6", {
 
 //& diff aggregation operators
 //1) $addFields ==> to create a new key-value pair at the time of display
-//2) $match ==> it is used to filter the documents based on certain conditions/
+//2) $match ==> it is used to filter the documents based on certain conditions/ and also used to filter grouped documents
 //3) $group ==> it is used to group the documents based on certain value
 //4) $lookup ==> it is used to join 2 or more collections
 //5) $sort ==> it is used to sort the data in asc/desc order
@@ -620,12 +620,22 @@ db.collectionName.aggregate([
   },
 ]);
 
-//! syntax for $project ==>
+//! syntax for $project ==> whenever we will use $project, by default _id is set to 1
 db.collectionName.aggregate([
   {
     $project: {
       keyName: 1, // display,
       keyName: 0, // hide
+      aliasingName: "$keyName",
+    },
+  },
+]);
+
+//! syntax for $addFields
+db.collectionName.aggregate([
+  {
+    $addFields: {
+      key_name: { expression },
     },
   },
 ]);
@@ -680,4 +690,124 @@ db.emp.aggregate([
   },
 ]);
 
-//& 4)
+//& 4) display number of employees working in each department along with deptNo
+// number of stages =>
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$deptNo",
+      noOfEmp: { $sum: 1 },
+    },
+  }, // stage1 --> group
+  {
+    $project: {
+      noOfEmp: 1,
+      deptNo: "$_id",
+      _id: 0,
+    },
+  }, // stage2 --> project
+]);
+
+//& 5) display total salary needed to pay in each department
+// stages ==> group, project
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$deptNo",
+      totalSalary: { $sum: "$sal" },
+    },
+  }, // group stage
+  {
+    $project: {
+      totalSalary: 1,
+      _id: 0,
+      empName: 1,
+    },
+  }, // project stage
+]);
+
+//& 5ext.) display total salary and employee names needed to pay in each department
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$deptNo",
+      totalSalary: { $sum: "$sal" },
+      employeeNames: { $push: "$empName" },
+      // employeeJobs: { $push: "$job" },
+    },
+  }, // group stage
+]);
+
+//& 6) display total number of employees in each job along with names
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$job",
+      total: { $sum: 1 },
+      names: { $push: "$empName" },
+    },
+  },
+]);
+
+//& 7) display the employee name and annual salary needed to pay to all the employees
+db.emp.aggregate([
+  {
+    $addFields: {
+      annualSal: { $multiply: ["$sal", 12] },
+    },
+  }, // $addFields stage
+  {
+    $project: {
+      empName: 1,
+      annualSal: 1,
+      _id: 0,
+    },
+  },
+]);
+
+//& 8) display the employee name and annual salary needed to pay to all the employees having letter a in their name.
+// stages ==> match, addFields, project
+db.emp.aggregate([
+  {
+    $match: {
+      empName: { $regex: /a/ },
+    },
+  }, // stage1 --> match
+  {
+    $addFields: {
+      anSal: { $multiply: ["$sal", 12] },
+    },
+  }, // stage2 --> addFields
+  {
+    $project: {
+      empName: 1,
+      anSal: 1,
+      _id: 0,
+    },
+  }, // stage3 --> project
+]);
+
+//! 9) display employee names, mid term salary and job whose mid term salary is greater than 10,000
+// stages ==> addFields, match, project
+
+//! 10)  display maximum salary, emp names and job from each deptNo having maximum salary lesser than 4000
+// stages ==> group , match
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$deptNo",
+      maxSal: { $max: "$sal" },
+      names: { $push: "$empName" },
+      // jobs: { $push: "$job" },
+      uniqueJobs: { $addToSet: "$job" },
+    },
+  },
+  {
+    $match: {
+      maxSal: { $lt: 4000 },
+    },
+  },
+]);
+
+//! find the emp whose commission exceeds the salary
+db.emp.find({ $expr: { $gt: ["$comm", "$sal"] } });
