@@ -640,6 +640,29 @@ db.collectionName.aggregate([
   },
 ]);
 
+//! syntax for $sort
+db.collectionName.aggregate([
+  {
+    $sort: {
+      key_name: 1 / -1, // 1 --> ascending order: -1 --> descending order
+    },
+  },
+]);
+
+//! syntax for limit
+db.collectionName.aggregate([
+  {
+    $limit: Integer,
+  },
+]);
+
+//! syntax for skip
+db.collectionName.aggregate([
+  {
+    $skip: Integer,
+  },
+]);
+
 //& 1) fetch the details of emp who are working in dept 20 and employee name should have letter "a"
 db.emp.find({ deptNo: 20, empName: { $regex: /a/ } });
 db.emp.aggregate([
@@ -811,3 +834,170 @@ db.emp.aggregate([
 
 //! find the emp whose commission exceeds the salary
 db.emp.find({ $expr: { $gt: ["$comm", "$sal"] } });
+
+//& display all the names of employees in ascending order
+// stages --> $sort , $project
+db.emp.aggregate([
+  {
+    $project: {
+      _id: 0,
+      empName: 1,
+    },
+  }, // project
+  {
+    $sort: {
+      empName: -1,
+    },
+  }, // sort
+]);
+//! NOTE: $sort key ordering must be 1 (for ascending) or -1 (for descending)
+
+//& display all the names and job of employees and salary should be arranged in ascending order
+db.emp.aggregate([
+  {
+    $sort: {
+      sal: 1,
+    },
+  }, // sort
+  {
+    $project: {
+      empName: 1,
+      job: 1,
+      _id: 0,
+    },
+  }, // project
+]);
+
+//& display all the names and sal of employees and salary should be arranged in ascending order
+db.emp.aggregate([
+  {
+    $sort: {
+      sal: 1,
+    },
+  }, // sort
+  {
+    $project: {
+      empName: 1,
+      sal: 1,
+      _id: 0,
+    },
+  }, // project
+]);
+
+db.emp.updateOne({ sal: 1250 }, { $set: { sal: 1000 } });
+
+//& display the name and sal of employee having third lowest salary
+// sal arrange ascending order, skip 2 documents
+db.emp.aggregate([
+  {
+    $sort: {
+      sal: 1,
+    },
+  }, // sort
+  {
+    $skip: 2,
+  }, // skip
+  { $limit: 2 },
+  {
+    $project: {
+      empName: 1,
+      sal: 1,
+      _id: 0,
+    }, // limit
+  },
+]);
+
+db.emp.aggregate([
+  {
+    $sort: {
+      sal: 1,
+    },
+  }, // sort
+  { $limit: 2 },
+  {
+    $project: {
+      empName: 1,
+      sal: 1,
+      _id: 0,
+    }, // limit
+  },
+]);
+
+//& display the name and sal of employee having second highest salary
+db.emp.aggregate([
+  {
+    $sort: {
+      sal: -1,
+    },
+  },
+  {
+    $project: {
+      empName: 1,
+      sal: 1,
+      _id: 0,
+    }, // limit
+  },
+]);
+
+db.emp.updateOne({ empName: "jones" }, { $set: { sal: 5000 } });
+
+[
+  { sal: 9000, empName: "smith" },
+  { sal: 5000, empName: "jones" },
+  { sal: 5000, empName: "king" },
+  { sal: 3300, empName: "adams" },
+  { sal: 3000, empName: "scott" },
+  { sal: 3000, empName: "ford" },
+  { sal: 3000, empName: "ward" },
+  { sal: 2850, empName: "blake" },
+  { sal: 2450, empName: "clark" },
+  { sal: 1600, empName: "miller" },
+  { sal: 1500, empName: "turner" },
+  { sal: 1250, empName: "james" },
+  { sal: 1100, empName: "allen" },
+  { sal: 1000, empName: "martin" },
+];
+
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$sal",
+      names: { $push: "$empName" },
+    },
+  }, // group stage
+  {
+    $sort: {
+      _id: -1,
+    },
+  }, // sort
+  { $skip: 1 },
+  { $limit: 1 },
+  {
+    $project: {
+      names: 1,
+      salary: "$_id",
+      _id: 0,
+    },
+  },
+]);
+
+let emp = {
+  _id: ObjectId("66a23517b5c6990483c4e49e"),
+  empNo: 7566,
+  job: "manager",
+  mgr: 7839,
+  hireDate: ISODate("1981-04-01T18:30:00.000Z"),
+  sal: 5000,
+  comm: 1200,
+  deptNo: {
+    _id: ObjectId("66a2354679c0c8f6a2470f94"),
+    deptNo: 20,
+    dName: "research",
+    loc: "dallas",
+  },
+  totalHoursWorked: 30,
+  havingInsurance: false,
+  bonus: 1000,
+  skills: ["html"],
+  empName: "jones",
+};
