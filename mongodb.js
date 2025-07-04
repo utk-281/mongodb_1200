@@ -663,6 +663,13 @@ db.collectionName.aggregate([
   },
 ]);
 
+//! syntax for $unwind
+db.collectionName.aggregate([
+  {
+    $unwind: "$key_name",
+  },
+]);
+
 //& 1) fetch the details of emp who are working in dept 20 and employee name should have letter "a"
 db.emp.find({ deptNo: 20, empName: { $regex: /a/ } });
 db.emp.aggregate([
@@ -1001,3 +1008,127 @@ let emp = {
   skills: ["html"],
   empName: "jones",
 };
+
+// ─── lookup ────────────────────────────────────────────────────────────────
+
+db.users.insertMany([
+  { name: "chetna", age: 34 },
+  { name: "varun", age: 32 },
+  { name: "ashwin", age: 31 },
+]);
+
+db.address.insertMany([
+  { city: "Noida", state: "UP" },
+  { city: "Banglore", state: "KA" },
+  { city: "Indore", state: "MP" },
+]);
+
+db.users.updateOne({ name: "ashwin" }, { $set: { address: ObjectId("68677bbae8f7504f0850eb6c") } });
+
+db.users.aggregate([
+  {
+    $match: {
+      name: "ashwin",
+    },
+  },
+  {
+    $lookup: {
+      from: "address",
+      foreignField: "_id",
+      localField: "address",
+      as: "address",
+    },
+  },
+]);
+
+// ─── lookup (orders, products, category) ────────────────────────────────────────────────────────────────
+
+db.categories.insertMany([
+  { _id: "cat1", name: "electronics" },
+  { _id: "cat2", name: "furniture" },
+  { _id: "cat3", name: "clothing" },
+]);
+
+db.products.insertMany([
+  { _id: "prod1", name: "laptop", category: "cat1", price: 1000 },
+  { _id: "prod2", name: "sofa", category: "cat2", price: 500 },
+  { _id: "prod3", name: "t-shirt", category: "cat3", price: 20 },
+]);
+
+db.orders.insertMany([
+  { _id: "order1", product: "prod1", quantity: 2 },
+  { _id: "order2", product: "prod2", quantity: 1 },
+  { _id: "order3", product: "prod3", quantity: 5 },
+]);
+
+db.products.aggregate([
+  {
+    $lookup: {
+      from: "categories",
+      foreignField: "_id",
+      localField: "category",
+      as: "category",
+    },
+  },
+]);
+
+db.orders.aggregate([
+  {
+    $lookup: {
+      from: "products",
+      foreignField: "_id",
+      localField: "product",
+      as: "product",
+    },
+  },
+  {
+    $unwind: "$product",
+  },
+]);
+
+[
+  {
+    _id: "order1",
+    product: { _id: "prod1", name: "laptop", category: "cat1", price: 1000 },
+    quantity: 2,
+  },
+  {
+    _id: "order2",
+    product: { _id: "prod2", name: "sofa", category: "cat2", price: 500 },
+    quantity: 1,
+  },
+  {
+    _id: "order3",
+    product: { _id: "prod3", name: "t-shirt", category: "cat3", price: 20 },
+    quantity: 5,
+  },
+];
+
+db.orders.aggregate([
+  {
+    $lookup: {
+      from: "products",
+      foreignField: "_id",
+      localField: "product",
+      as: "product",
+    },
+  },
+  {
+    $unwind: "$product",
+  },
+  {
+    $lookup: {
+      from: "categories",
+      foreignField: "_id",
+      localField: "product.category",
+      as: "product.category",
+    },
+  },
+  {
+    $unwind: "$product.category",
+  },
+]);
+
+//! details of emp along with department details
+//! display the names and department location of all the employees
+//!
